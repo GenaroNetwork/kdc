@@ -23,6 +23,8 @@ func InitFile(userId string, fileId string, allow *AllowTableT, mortgage *Mortga
 	return UnImplementedErr
 }
 
+
+
 func Terminate(fileId string) error{
 	// 1. update db.
 	// 2. send terminate transaction
