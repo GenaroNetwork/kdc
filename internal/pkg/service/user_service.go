@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"fmt"
 	"reflect"
+	"kdc/internal/pkg/core"
 )
 
 type jsonRpc2 struct {
@@ -86,26 +87,30 @@ func handle(c echo.Context) (err error) {
 		err = echo.NewHTTPError(http.StatusBadRequest, "invalid json rpc 2.0")
 		return
 	}
-	jresponse := new(jsonResponse)
-	jresponse.Id = j.Id
-	jresponse.Jsonrpc = "2.0"
+	jResponse := new(jsonResponse)
+	jResponse.Id = j.Id
+	jResponse.Jsonrpc = "2.0"
 	switch j.Method {
 		case "subtract":
-			jresponse.Result = "subtract result"
+			jResponse.Result = "subtract result"
 		case "read":
-			jresponse.Result = 1
+			jResponse.Result = 1
 		case "terminate":
-			jresponse.Result = "terminate result"
+			jResponse.Result = "terminate result"
 		default:
 			err = echo.NewHTTPError(http.StatusBadRequest, "method not supported")
 			return
 	}
-	return c.JSON(http.StatusOK, jresponse)
+	return c.JSON(http.StatusOK, jResponse)
 }
 
-func handleSubtract(jsonrpc *jsonRpc2) interface{} {
+func handleSubtract(jsonRpc *jsonRpc2) interface{} {
+	fileId := jsonRpc.Params.FileId
+	userId := jsonRpc.Params.Data
+	amount := jsonRpc.Params.Amount.ToInt()
 	// check signature
 
 	// call core method
+	core.SubtractValue(fileId, userId, amount)
 	return 1
 }

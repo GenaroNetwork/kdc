@@ -31,12 +31,12 @@ func Terminate(fileId string) error{
 	return UnImplementedErr
 }
 
-func SubtractValue(fileId string, userId string, amount *CoinUnitT) error {
+func SubtractValue(fileId string, userId string, amount *CoinUnitT) (*CoinUnitT, error) {
 	// 1. check privilege
 	// 2. insert modify table
 	// 3. update state
 	// 4. return if success
-	return UnImplementedErr
+	return nil, UnImplementedErr
 }
 
 func ReadValue(fileId string, userId string) (*CoinUnitT, error) {
