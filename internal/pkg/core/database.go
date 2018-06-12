@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"os"
 	"database/sql"
+	_ "github.com/mattn/go-sqlite3"
 	"fmt"
 )
 var dbLog = logging.MustGetLogger("database")
