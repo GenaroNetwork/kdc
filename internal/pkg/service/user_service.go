@@ -11,29 +11,29 @@ import (
 	"kdc/internal/pkg/core"
 )
 
-type jsonRpc2 struct {
-	Jsonrpc  string `json:"jsonrpc"`
+type jsonRpc struct {
+	JsonRpc  string `json:"jsonrpc"`
 	Method string `json:"method"`
 	Id interface{} `json:"id"`
-	Params *writeParam `json:"params"`
+	Params *param `json:"params"`
 }
 
-type writeParam struct {
-	FileId string `json:"fileId"`
-	Data string `json:"data"`
-	Amount *hexutil.Big `json:"amount"`
+type param struct {
+	FileId string `json:"fileId,omitempty"`
+	Data string `json:"data,omitempty"`
+	Amount *hexutil.Big `json:"amount,omitempty"`
 	Signature string `json:"signature"`
 }
 
 type jsonResponse struct {
-	Jsonrpc  string `json:"jsonrpc"`
+	JsonRpc  string `json:"jsonrpc"`
 	Id interface{} `json:"id"`
 	Result interface{} `json:"result"`
 }
 
-func validJsonRpc2(rpc *jsonRpc2) bool{
+func validJsonRpc2(rpc *jsonRpc) bool{
 	// check version
-	if rpc.Jsonrpc != "2.0" {
+	if rpc.JsonRpc != "2.0" {
 		return false
 	}
 	// check id
@@ -64,21 +64,14 @@ func RunService() {
 	e.Use(middleware.Recover())
 
 	// Routes
-	e.GET("/", hello)
 	e.POST("/api", handle)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":8080"))
 }
 
-// Handler
-func hello(c echo.Context) error {
-	return c.String(http.StatusOK, "Hello, World!")
-}
-
-
 func handle(c echo.Context) (err error) {
-	j := new(jsonRpc2)
+	j := new(jsonRpc)
 	if err = c.Bind(j); err != nil {
 		return
 	}
@@ -89,10 +82,11 @@ func handle(c echo.Context) (err error) {
 	}
 	jResponse := new(jsonResponse)
 	jResponse.Id = j.Id
-	jResponse.Jsonrpc = "2.0"
+	jResponse.JsonRpc = "2.0"
 	switch j.Method {
 		case "subtract":
-			jResponse.Result = "subtract result"
+			result := handleSubtract(j)
+			jResponse.Result = result
 		case "read":
 			jResponse.Result = 1
 		case "terminate":
@@ -101,13 +95,16 @@ func handle(c echo.Context) (err error) {
 			err = echo.NewHTTPError(http.StatusBadRequest, "method not supported")
 			return
 	}
-	return c.JSON(http.StatusOK, jResponse)
+	return c.JSON(http.StatusOK, j)
 }
 
-func handleSubtract(jsonRpc *jsonRpc2) interface{} {
-	fileId := jsonRpc.Params.FileId
-	userId := jsonRpc.Params.Data
-	amount := jsonRpc.Params.Amount.ToInt()
+func handleSubtract(jsonRpc *jsonRpc) interface{} {
+	pp := jsonRpc.Params
+
+	fileId := pp.FileId
+	userId := pp.Data
+	amount := pp.Amount.ToInt()
+	fmt.Println(amount)
 	// check signature
 
 	// call core method
