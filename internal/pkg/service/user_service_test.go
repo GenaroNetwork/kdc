@@ -71,3 +71,37 @@ func TestFullSignature(t *testing.T) {
 	fmt.Printf("calculated addr is %s\n", finalAddr)
 
 }
+
+/**
+	{
+		"jsonrpc": "2.0",
+		"method": "subtract",
+		"id": 1,
+		"params": {
+			"fileId": "fhdusihfdisuhdihui",
+			"data": "0x00dB21164B6510a4A0c6BC7C48178e31Cd8B6145",
+			"amount": "0x91a",
+			"signature": "1f02df499f15c8757754c11251a6e5238296f56b17f7229202fce6ccd7289e224c49c32eaf77d5905e2b4d8a8a5ddcc215c51ce45c207ef0f038328200578d1bee"
+		}
+	}
+private key: 7b27e6bc6bf67b99b26f2e00c6acc1102e187a5ff469735f1f65805354809598
+public  key: 04dad3c1205c456ca05996285725177c700b901a85f1cc2d02aa0729de49754d2e8db26834f51a3d72cd3e03cc28a6128dc8d35445764fec423ded742d4c2865d2
+addr is    : 0x3056D12c1Df12B5299E2eC559eE60a781661Cc48
+ */
+func TestSignReq(t *testing.T) {
+	prik, _ := crypto.GenerateKey()
+	pubk := &prik.PublicKey
+	prikStr := hex.EncodeToString(crypto.FromECDSA(prik))
+	pubkStr := hex.EncodeToString(crypto.FromECDSAPub(pubk))
+
+	addr := crypto.PubkeyToAddress(prik.PublicKey).Hex()
+	fmt.Printf("private key: %s\n", prikStr)
+	fmt.Printf("public  key: %s\n", pubkStr)
+	fmt.Printf("addr is    : %s\n", addr)
+
+	a := "2.0" + "subtract" + "1" + "fhdusihfdisuhdihui" + addr + "0x91a"
+	shaMsg := crypto.Keccak256([]byte(a))
+	sig, _ := crypto.Sign(shaMsg, prik)
+	sigStr := hex.EncodeToString(sig)
+	fmt.Printf("signature : %s\n", sigStr)
+}
