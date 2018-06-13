@@ -25,13 +25,13 @@ func InitFile(userId string, fileId string, allow *AllowTableT, mortgage *Mortga
 
 
 
-func Terminate(fileId string) error{
+func Terminate(userId string, fileId string) error{
 	// 1. update db.
 	// 2. send terminate transaction
 	return UnImplementedErr
 }
 
-func SubtractValue(fileId string, userId string, amount *CoinUnitT) (*CoinUnitT, error) {
+func SubtractValue(userId string, fileId string, amount *CoinUnitT) (*CoinUnitT, error) {
 	// 1. check privilege
 	// 2. insert modify table
 	// 3. update state
@@ -39,7 +39,7 @@ func SubtractValue(fileId string, userId string, amount *CoinUnitT) (*CoinUnitT,
 	return nil, UnImplementedErr
 }
 
-func ReadValue(fileId string, userId string) (*CoinUnitT, error) {
+func ReadValue(readingUser string, fileId string, userId string) (*CoinUnitT, error) {
 	// 1. check privilege
 	// 2. read state
 	return nil, UnImplementedErr

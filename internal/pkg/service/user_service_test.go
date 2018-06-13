@@ -105,3 +105,40 @@ func TestSignReq(t *testing.T) {
 	sigStr := hex.EncodeToString(sig)
 	fmt.Printf("signature : %s\n", sigStr)
 }
+func TestSignReadReq(t *testing.T) {
+	prik, _ := crypto.GenerateKey()
+	pubk := &prik.PublicKey
+	prikStr := hex.EncodeToString(crypto.FromECDSA(prik))
+	pubkStr := hex.EncodeToString(crypto.FromECDSAPub(pubk))
+
+	addr := crypto.PubkeyToAddress(prik.PublicKey).Hex()
+	fmt.Printf("private key: %s\n", prikStr)
+	fmt.Printf("public  key: %s\n", pubkStr)
+	fmt.Printf("addr is    : %s\n", addr)
+
+	a := "2.0" + "read" + "1" + "fhdusihfdisuhdihui" + addr
+	shaMsg := crypto.Keccak256([]byte(a))
+	sig, _ := crypto.Sign(shaMsg, prik)
+	sigStr := hex.EncodeToString(sig)
+	fmt.Printf("signature : %s\n", sigStr)
+}
+
+
+func TestSignTerminateReq(t *testing.T) {
+	prik, _ := crypto.GenerateKey()
+	pubk := &prik.PublicKey
+	prikStr := hex.EncodeToString(crypto.FromECDSA(prik))
+	pubkStr := hex.EncodeToString(crypto.FromECDSAPub(pubk))
+
+	addr := crypto.PubkeyToAddress(prik.PublicKey).Hex()
+	fmt.Printf("private key: %s\n", prikStr)
+	fmt.Printf("public  key: %s\n", pubkStr)
+	fmt.Printf("addr is    : %s\n", addr) //0x5406183353Ec94eA26d9e9c170a4Bd8f26f2b2DD
+
+	a := "2.0" + "terminate" + "1" + "fhdusihfdisuhdihui"
+	shaMsg := crypto.Keccak256([]byte(a))
+	sig, _ := crypto.Sign(shaMsg, prik)
+	sigStr := hex.EncodeToString(sig)
+	fmt.Printf("signature : %s\n", sigStr)
+}
+
