@@ -15,14 +15,6 @@ var (
 	testpubkeyc = hexutil.MustDecode("0x02e32df42865e97135acfb65f3bae71bdc86f4d49150ad6a440b6f15878109880a")
 )
 
-//func generateKeyPair() (pubkey, privkey []byte) {
-//	key, err := ecdsa.GenerateKey(secp256k1.S256(), rand.Reader)
-//	if err != nil {
-//		panic(err)
-//	}
-//	pubkey = elliptic.Marshal(secp256k1.S256(), key.X, key.Y)
-//	return pubkey, math.PaddedBigBytes(key.D, 32)
-//}
 func TestRunService(t *testing.T) {
 	RunService()
 }
@@ -122,7 +114,6 @@ func TestSignReadReq(t *testing.T) {
 	sigStr := hex.EncodeToString(sig)
 	fmt.Printf("signature : %s\n", sigStr)
 }
-
 
 func TestSignTerminateReq(t *testing.T) {
 	prik, _ := crypto.GenerateKey()
