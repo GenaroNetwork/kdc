@@ -43,7 +43,7 @@ type FireSyncTransactionParameter struct {
 }
 
 func FireSyncTransaction(isTerminate bool, fromAccount,fileId string, mortgage *core.Mortgage) bool {
-	if"" == fileId || nil == mortgage {
+	if "" == fileId || nil == mortgage || "" == fromAccount {
 		return false
 	}
 	unlock := UnlockAccount(SyncAccount,AccountPassword)
