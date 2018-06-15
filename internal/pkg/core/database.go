@@ -1,17 +1,17 @@
 package core
 
 import (
-	"os/user"
-	"github.com/op/go-logging"
-	"path/filepath"
-	"os"
 	"database/sql"
-	_ "github.com/mattn/go-sqlite3"
+	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/op/go-logging"
+	"os"
+	"os/user"
+	"path/filepath"
 	"sync"
 	"time"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"errors"
 )
 
 var dbLog = logging.MustGetLogger("database")
@@ -19,7 +19,7 @@ var dbHome string
 var dbMutex = &sync.Mutex{}
 var dbConn *sql.DB
 
-func getModificationTableName(fileId string) string{
+func getModificationTableName(fileId string) string {
 	return fmt.Sprintf("FILE_%s", fileId)
 }
 
@@ -186,7 +186,7 @@ func getPermissionForFile(user string, fileId string) (int, error) {
 	return privilege, nil
 }
 
-func getOperationsForFile(fileId string, userId string) (*[]ModificationT, error){
+func getOperationsForFile(fileId string, userId string) (*[]ModificationT, error) {
 	var modifications []ModificationT
 	tableName := getModificationTableName(fileId)
 	dbMutex.Lock()
@@ -226,7 +226,7 @@ func getOperationsForFile(fileId string, userId string) (*[]ModificationT, error
 	return &modifications, nil
 }
 
-func appendNewOperation(fileId string, userId string, operation string, value string) error{
+func appendNewOperation(fileId string, userId string, operation string, value string) error {
 	dbMutex.Lock()
 	defer dbMutex.Unlock()
 	nowTime := time.Now().Unix()

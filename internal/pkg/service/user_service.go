@@ -3,48 +3,48 @@ package service
 import (
 	"net/http"
 
+	"encoding/hex"
+	"errors"
+	"fmt"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"fmt"
-	"reflect"
 	"kdc/internal/pkg/core"
-	"github.com/ethereum/go-ethereum/crypto"
-	"encoding/hex"
+	"reflect"
 	"strconv"
-	"errors"
 )
 
 type jsonRpc struct {
-	JsonRpc  string `json:"jsonrpc"`
-	Method string `json:"method"`
-	Id interface{} `json:"id"`
-	Params *param `json:"params"`
+	JsonRpc string      `json:"jsonrpc"`
+	Method  string      `json:"method"`
+	Id      interface{} `json:"id"`
+	Params  *param      `json:"params"`
 }
 
 type param struct {
-	FileId string `json:"fileId,omitempty"`
-	Data string `json:"data,omitempty"`
-	Amount *hexutil.Big `json:"amount,omitempty"`
-	Signature string `json:"signature"`
+	FileId    string       `json:"fileId,omitempty"`
+	Data      string       `json:"data,omitempty"`
+	Amount    *hexutil.Big `json:"amount,omitempty"`
+	Signature string       `json:"signature"`
 }
 
 type jsonResponse struct {
-	JsonRpc  string `json:"jsonrpc"`
-	Result interface{} `json:"result,omitempty"`
-	Id interface{} `json:"id"`
-	Error jsonErr `json:"error,omitempty"`
+	JsonRpc string      `json:"jsonrpc"`
+	Result  interface{} `json:"result,omitempty"`
+	Id      interface{} `json:"id"`
+	Error   jsonErr     `json:"error,omitempty"`
 }
 
 type jsonErr struct {
-	Code int `json:"code,omitempty"`
-	Message string `json:"message,omitempty"`
-	Data interface{} `json:"data,omitempty"`
+	Code    int         `json:"code,omitempty"`
+	Message string      `json:"message,omitempty"`
+	Data    interface{} `json:"data,omitempty"`
 }
 
 var BadIdErr = errors.New("bad id")
 
-func validJsonRpc2(rpc *jsonRpc) bool{
+func validJsonRpc2(rpc *jsonRpc) bool {
 	// check version
 	if rpc.JsonRpc != "2.0" {
 		return false
@@ -53,9 +53,12 @@ func validJsonRpc2(rpc *jsonRpc) bool{
 	id := rpc.Id
 	fmt.Print(reflect.TypeOf(id))
 	switch id.(type) {
-		case string: break
-		case float64: break // go recognise number to float
-		default: return false
+	case string:
+		break
+	case float64:
+		break // go recognise number to float
+	default:
+		return false
 	}
 	// check method
 	if rpc.Method != "subtract" && rpc.Method != "read" && rpc.Method != "terminate" {
@@ -92,31 +95,31 @@ func handle(c echo.Context) (err error) {
 	}
 	var jResponse *jsonResponse
 	switch j.Method {
-		case "subtract":
-			jResponse = handleSubtract(j)
-			return c.JSON(http.StatusOK, jResponse)
-		case "read":
-			jResponse = handleRead(j)
-			return c.JSON(http.StatusOK, jResponse)
-		case "terminate":
-			jResponse = handleTerminate(j)
-			return c.JSON(http.StatusOK, jResponse)
-		default:
-			err = echo.NewHTTPError(http.StatusBadRequest, "method not supported")
-			return
+	case "subtract":
+		jResponse = handleSubtract(j)
+		return c.JSON(http.StatusOK, jResponse)
+	case "read":
+		jResponse = handleRead(j)
+		return c.JSON(http.StatusOK, jResponse)
+	case "terminate":
+		jResponse = handleTerminate(j)
+		return c.JSON(http.StatusOK, jResponse)
+	default:
+		err = echo.NewHTTPError(http.StatusBadRequest, "method not supported")
+		return
 	}
 	err = echo.NewHTTPError(http.StatusInternalServerError, "unknown error")
 	return
 }
 
-func idToStr(id interface{}) (string, error){
+func idToStr(id interface{}) (string, error) {
 	switch id.(type) {
-		case string:
-			return id.(string), nil
-		case float64:  // go recognise number to float
-			return strconv.Itoa(int(id.(float64))), nil
-		default:
-			return "", BadIdErr
+	case string:
+		return id.(string), nil
+	case float64: // go recognise number to float
+		return strconv.Itoa(int(id.(float64))), nil
+	default:
+		return "", BadIdErr
 	}
 }
 

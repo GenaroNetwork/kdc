@@ -1,9 +1,9 @@
 package core
 
 import (
-	"math/big"
 	"errors"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"math/big"
 )
 
 const (
@@ -17,10 +17,11 @@ type AllowTableT = map[string]int
 type MortgageTableT = map[string]CoinUnitT
 type ModificationT struct {
 	operation string
-	value CoinUnitT
+	value     CoinUnitT
 }
 
 type Mortgage = map[string]string
+
 var UnImplementedErr = errors.New("unimplemented") // error usage https://medium.com/@sebdah/go-best-practices-error-handling-2d15e1f0c5ee
 var InsufficientBalanceErr = errors.New("insufficient balance")
 var NotOwnerErr = errors.New("insufficient privilege: not owner")
@@ -28,12 +29,12 @@ var NoPermissionErr = errors.New("user has no permission")
 var UnSupportedOperationErr = errors.New("UnSupportedOperationErr")
 var NoNegativeValueAllowedErr = errors.New("NoNegativeValueAllowedErr")
 
-func InitFile(userId string, fileId string, allow *AllowTableT, mortgage *MortgageTableT,startTime  int64,EndTime  int64) error{
+func InitFile(userId string, fileId string, allow *AllowTableT, mortgage *MortgageTableT, startTime int64, EndTime int64) error {
 	err := initNewFile(fileId, userId, "", allow, mortgage)
 	return err
 }
 
-func Terminate(userId string, fileId string) (string, error){
+func Terminate(userId string, fileId string) (string, error) {
 	// 1. check privilege
 	bOwner, _ := isOwner(fileId, userId)
 	if !bOwner {
@@ -95,14 +96,14 @@ func calculateAllValue(mods *[]ModificationT) (*CoinUnitT, error) {
 	var err error
 	for _, mod := range *mods {
 		resultVal, err = singleOperation(mod.operation, resultVal, &mod.value)
-		if err!=nil {
+		if err != nil {
 			return nil, err
 		}
 	}
 	return resultVal, nil
 }
 
-func readValueDirect(fileId string, userId string) (*CoinUnitT, error){
+func readValueDirect(fileId string, userId string) (*CoinUnitT, error) {
 	modifys, err := getOperationsForFile(fileId, userId)
 	if err != nil {
 		return nil, err

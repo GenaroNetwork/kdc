@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	"database/sql"
-	"log"
-	"path/filepath"
-	"math/big"
 	"fmt"
-	"time"
-	"sync"
+	"log"
+	"math/big"
+	"path/filepath"
 	"strconv"
+	"sync"
+	"time"
 )
 
 func TestDB(t *testing.T) {
@@ -51,18 +51,18 @@ func TestChan(t *testing.T) {
 	funcs := make(chan func(), 10)
 	go useChan(funcs)
 	for true {
-		func1 := <- funcs
+		func1 := <-funcs
 		func1()
 	}
 }
 
-func useChan2(funcs chan func()) int{
+func useChan2(funcs chan func()) int {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	i := 0
 	funcs <- func() {
 		wg.Done()
-		i ++
+		i++
 		time.Sleep(time.Millisecond * 2)
 	}
 	wg.Wait()
@@ -73,7 +73,7 @@ func TestWaitChan(t *testing.T) {
 	funcs := make(chan func(), 10)
 	go func() {
 		for true {
-			func1 := <- funcs
+			func1 := <-funcs
 			func1()
 		}
 	}()
@@ -81,7 +81,6 @@ func TestWaitChan(t *testing.T) {
 	b := useChan2(funcs)
 	fmt.Println(b)
 }
-
 
 func TestBigint(t *testing.T) {
 	n := new(big.Int)
@@ -96,15 +95,15 @@ func TestBigint(t *testing.T) {
 func TestGetOrCreateFileDB(t *testing.T) {
 	mt := MortgageTableT{
 		"userAsss": *big.NewInt(1),
-		"r":   *big.NewInt(2),
-		"gri": *big.NewInt(3),
-		"adg": *big.NewInt(4),
+		"r":        *big.NewInt(2),
+		"gri":      *big.NewInt(3),
+		"adg":      *big.NewInt(4),
 	}
 	at := AllowTableT{
 		"userAsss": 1,
 	}
 	for i := 1; i <= 100; i++ {
-		go initNewFile("0xbbbb" + strconv.Itoa(i), "0xowner","{}", &at, &mt)
+		go initNewFile("0xbbbb"+strconv.Itoa(i), "0xowner", "{}", &at, &mt)
 	}
 	time.Sleep(time.Second * 5)
 }
