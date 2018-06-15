@@ -16,6 +16,7 @@ type CoinUnitT = big.Int
 type AllowTableT = map[string]int
 type MortgageTableT = map[string]*big.Int
 
+type Mortgage = map[string]string
 var UnImplementedErr = errors.New("unimplemented") // error usage https://medium.com/@sebdah/go-best-practices-error-handling-2d15e1f0c5ee
 var InsufficientBalanceErr = errors.New("insufficient balance")
 

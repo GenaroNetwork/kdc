@@ -9,16 +9,17 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-type FileIDArr struct {
+type MortgageTab struct {
 	FromAccount string 	`json:"fromAccount"`
 	Terminate	bool			`json:"terminate"`
-	Sidechain	map[string] *hexutil.Big `json:"sidechain"`
+	Sidechain	*core.Mortgage `json:"sidechain"`
+	FileID		string			`json:"fileID"`
 }
 
 
 type SpecialTxInput struct {
-	Type    *hexutil.Big    `json:"type"`
-	SpecialTxTypeMortgageInit 	FileIDArr	`json:"specialTxTypeMortgageInit"`
+	Type    string    `json:"type"`
+	SpecialTxTypeMortgageInit 	MortgageTab	`json:"specialTxTypeMortgageInit"`
 }
 
 
@@ -26,20 +27,59 @@ type SpecialTxInput struct {
 type SendTxArgs struct {
 	From     string  `json:"from"`
 	To       string `json:"to"`
-	Gas      *hexutil.Uint64 `json:"gas"`
-	GasPrice *hexutil.Big    `json:"gasPrice"`
-	Value    *hexutil.Big    `json:"value"`
-	Nonce    *hexutil.Uint64 `json:"nonce"`
-	// We accept "data" and "input" for backwards-compatibility reasons. "input" is the
-	// newer name and should be preferred by clients.
+	Gas      string `json:"gas"`
+	GasPrice string    `json:"gasPrice"`
+	Value    string    `json:"value"`
 	Data  *hexutil.Bytes `json:"data"`
-	ExtraData  SpecialTxInput      `json:"extraData"`
+	ExtraData  string      `json:"extraData"`
 }
 
 
-func FireSyncTransaction(isTerminate bool, fileId string, mortgage *core.MortgageTableT) (string, error){
-	UnlockAccount(SyncAccount,AccountPassword)
-	return "0x", nil
+type FireSyncTransactionParameter struct {
+	Jsonrpc  string 	`json:"jsonrpc"`
+	Method 	 string		`json:"method"`
+	Params	 []SendTxArgs	`json:"params"`
+	Id		 int 		`json:"id"`
+}
+
+func FireSyncTransaction(isTerminate bool, fromAccount,fileId string, mortgage *core.Mortgage) bool {
+	if"" == fileId || nil == mortgage {
+		return false
+	}
+	unlock := UnlockAccount(SyncAccount,AccountPassword)
+	if false == unlock {
+		return false
+	}
+	mortgageTab := MortgageTab{
+		FromAccount:fromAccount,
+		Terminate:isTerminate,
+		Sidechain:mortgage,
+		FileID:fileId,
+	}
+	txInput := SpecialTxInput{
+		Type:SyncTransactionType,
+		SpecialTxTypeMortgageInit:mortgageTab,
+	}
+	sendTxArgs  := SendTxArgs{
+		From:SyncAccount,
+		To:SpecialAccount,
+		Gas:GasVal,
+		GasPrice:GasPriceVal,
+	}
+	extraData,_ := json.Marshal(txInput)
+	sendTxArgs.ExtraData = string(extraData)
+	parameter := FireSyncTransactionParameter{
+		Jsonrpc: "2.0",
+		Method: "eth_sendTransaction",
+		Id: 1,
+	}
+	parameter.Params=append(parameter.Params,sendTxArgs)
+	input,_ := json.Marshal(parameter)
+	result := httpPost(input)
+	if nil == result {
+		return false
+	}
+	return true
 }
 
 type UnlockAccountParameter struct {
@@ -51,14 +91,17 @@ type UnlockAccountParameter struct {
 
 
 
-func UnlockAccount(Account,Password string) bool {
+func UnlockAccount(account,password string) bool {
+	if "" == account || "" == password {
+		return false
+	}
 	parameter := UnlockAccountParameter{
 		Jsonrpc: "2.0",
 		Method: "eth_getMortgageInitByBlockNumberRange",
 		Id: 1,
 	}
-	parameter.Params = append(parameter.Params,Account)
-	parameter.Params = append(parameter.Params,Password)
+	parameter.Params = append(parameter.Params,account)
+	parameter.Params = append(parameter.Params,password)
 	input,_ := json.Marshal(parameter)
 	result := httpPost(input)
 	if nil == result {
@@ -70,6 +113,9 @@ func UnlockAccount(Account,Password string) bool {
 
 
 func GetInitFile(startNum string)  {
+	if "" == startNum {
+		return
+	}
 	mortgageInitResultArr := GetMortgageInitByBlockNumberRange(startNum)
 	var AllowTableArr core.AllowTableT
 	MortgageTableArr := make(core.MortgageTableT)
@@ -106,6 +152,9 @@ type MortgageInitParameter struct {
 }
 
 func GetMortgageInitByBlockNumberRange(startNum string) []InitFile{
+	if "" == startNum {
+		return nil
+	}
 	parameter := MortgageInitParameter{
 		Jsonrpc: "2.0",
 		Method: "eth_getMortgageInitByBlockNumberRange",
@@ -148,6 +197,9 @@ func GetBlockNumber() string {
 }
 
 func httpPost(parameter []byte) []byte {
+	if nil == parameter {
+		return nil
+	}
 	client := &http.Client{}
 	req_parameter := bytes.NewBuffer(parameter)
 	request, _ := http.NewRequest("POST", ServeUrl, req_parameter)
