@@ -211,3 +211,39 @@ func httpPost(parameter []byte) []byte {
 	}
 	return nil
 }
+
+type GetLogSwitchParameter struct {
+	Jsonrpc  string 	`json:"jsonrpc"`
+	Method 	 string		`json:"method"`
+	Params	 []string		`json:"params"`
+	Id		 int 		`json:"id"`
+}
+
+type FileID  []string
+
+type GetLogSwitchByAddressAndFileIDResult struct {
+	Id 			int			`json:"id"`
+	Jsonrpc		string		`json:"jsonrpc"`
+	Result		map[string]map[string]bool		`json:"result"`
+}
+
+func GetLogSwitchByAddressAndFileID(addressAndFileID  map[string]FileID)  map[string]map[string]bool {
+	if nil ==  addressAndFileID {
+		return nil
+	}
+	addressAndFileIdStr,_ := json.Marshal(addressAndFileID)
+	parameter := GetLogSwitchParameter{
+		Jsonrpc: "2.0",
+		Method: "eth_getLogSwitchByAddressAndFileID",
+		Id: 1,
+	}
+	parameter.Params = append(parameter.Params,string(addressAndFileIdStr))
+	input,_ := json.Marshal(parameter)
+	result := httpPost(input)
+	if nil == result {
+		return nil
+	}
+	var resultArr GetLogSwitchByAddressAndFileIDResult
+	json.Unmarshal(result, &resultArr)
+	return resultArr.Result
+}
