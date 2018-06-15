@@ -19,6 +19,10 @@ var dbHome string
 var dbMutex = &sync.Mutex{}
 var dbConn *sql.DB
 
+func getModificationTableName(fileId string) string{
+	return fmt.Sprintf("FILE_%s", fileId)
+}
+
 func init() {
 	usr, err := user.Current()
 	if err != nil {
@@ -91,7 +95,7 @@ func initNewFile(fileId string, owner string, originJson string, allow *AllowTab
 		stmtP.Exec(fileId, userA, privA, nowTime)
 	}
 	// create modify table and insert init value
-	tableName := fmt.Sprintf("FILE_%s", fileId)
+	tableName := getModificationTableName(fileId)
 	sqlStmt := fmt.Sprintf(`create table %s (userId text not null, opration text, value text, createTime int not null);`, tableName)
 
 	_, err2 := tx.Exec(sqlStmt)
@@ -160,5 +164,83 @@ func setFileTerminate(fileId string) error {
 		return errors.New("terminate sql has no effect")
 	}
 
+	return nil
+}
+
+func getPermissionForFile(user string, fileId string) (int, error) {
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
+	stmt, err := dbConn.Prepare("select privilege from privilege where fileId = ? and user = ? ")
+	if err != nil {
+		dbLog.Error("select privilege err: %s", err)
+		return -1, err
+	}
+	defer stmt.Close()
+	var privilege int
+	err = stmt.QueryRow(fileId, user).Scan(&privilege)
+	if err != nil {
+		dbLog.Error("select privilege err: %s", err)
+		return -1, err
+	}
+
+	return privilege, nil
+}
+
+func getOperationsForFile(fileId string, userId string) (*[]ModificationT, error){
+	var modifications []ModificationT
+	tableName := getModificationTableName(fileId)
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
+	stmt, err := dbConn.Prepare(fmt.Sprintf("select operation, value from %s where and user = ? ", tableName))
+	if err != nil {
+		dbLog.Error("select operation, value err: %s", err)
+		return nil, err
+	}
+	defer stmt.Close()
+	rows, err := stmt.Query(fileId, userId)
+	defer rows.Close()
+	if err != nil {
+		dbLog.Error("select operation, value err: %s", err)
+		return nil, err
+	}
+	for rows.Next() {
+		var value string
+		var operation string
+		err = rows.Scan(&operation, &value)
+		if err != nil {
+			dbLog.Error("select operation, value err: %s", err)
+		}
+		fmt.Println(operation, value)
+		intVal, err := hexutil.DecodeBig(value)
+		if err != nil {
+			dbLog.Error("cannot DecodeBig: %s", err)
+			continue
+		}
+		modifications = append(modifications, ModificationT{operation, *intVal})
+	}
+	err = rows.Err()
+	if err != nil {
+		dbLog.Error("select operation, value err: %s", err)
+	}
+
+	return &modifications, nil
+}
+
+func appendNewOperation(fileId string, userId string, operation string, value string) error{
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
+	nowTime := time.Now().Unix()
+
+	tableName := getModificationTableName(fileId)
+	stmtM, err := dbConn.Prepare(fmt.Sprintf("insert into %s (userId, opration, value, createTime) values (?, ?, ?, ?);", tableName))
+	defer stmtM.Close()
+	if err != nil {
+		dbLog.Fatal(err)
+	}
+	_, err = stmtM.Exec(userId, operation, value, nowTime)
+	if err != nil {
+		dbLog.Error("appendNewOperation err: %s\n", err)
+		return err
+	}
 	return nil
 }

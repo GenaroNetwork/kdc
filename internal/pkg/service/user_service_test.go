@@ -61,7 +61,6 @@ func TestFullSignature(t *testing.T) {
 	// validate
 	finalAddr := crypto.PubkeyToAddress(*recoveredPub2).Hex()
 	fmt.Printf("calculated addr is %s\n", finalAddr)
-
 }
 
 /**

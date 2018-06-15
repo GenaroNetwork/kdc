@@ -247,7 +247,7 @@ func handleTerminate(json *jsonRpc) *jsonResponse {
 	readingUser := crypto.PubkeyToAddress(*recoveredPub2).Hex()
 	fmt.Printf("reading user addr is %s\n", readingUser)
 	// call core method
-	err2 := core.Terminate(readingUser, fileId)
+	_, err2 := core.Terminate(readingUser, fileId)
 	if err2 != nil {
 		jResponse.Error = *makeJsonError(400, err2.Error())
 		return jResponse
