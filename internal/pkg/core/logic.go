@@ -20,6 +20,7 @@ type ModificationT struct {
 	value CoinUnitT
 }
 
+type Mortgage = map[string]string
 var UnImplementedErr = errors.New("unimplemented") // error usage https://medium.com/@sebdah/go-best-practices-error-handling-2d15e1f0c5ee
 var InsufficientBalanceErr = errors.New("insufficient balance")
 var NotOwnerErr = errors.New("insufficient privilege: not owner")
@@ -27,7 +28,7 @@ var NoPermissionErr = errors.New("user has no permission")
 var UnSupportedOperationErr = errors.New("UnSupportedOperationErr")
 var NoNegativeValueAllowedErr = errors.New("NoNegativeValueAllowedErr")
 
-func InitFile(userId string, fileId string, allow *AllowTableT, mortgage *MortgageTableT) error{
+func InitFile(userId string, fileId string, allow *AllowTableT, mortgage *MortgageTableT,startTime  int64,EndTime  int64) error{
 	err := initNewFile(fileId, userId, "", allow, mortgage)
 	return err
 }
