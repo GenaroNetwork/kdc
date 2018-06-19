@@ -119,3 +119,11 @@ func TestSetTerminate(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestArr(t *testing.T) {
+	var aaa []int
+	aaa = append(aaa, 1)
+	aaa = append(aaa, 2)
+	aaa = append(aaa, 3)
+	fmt.Println(aaa)
+}

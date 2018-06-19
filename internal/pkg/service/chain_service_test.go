@@ -23,7 +23,7 @@ func TestUnlockAccount(t *testing.T) {
 }
 
 func TestFireSyncTransaction(t *testing.T) {
-	mortgageTable := make(core.Mortgage)
+	mortgageTable := make(core.MortgageT)
 	mortgageTable["0xc4f27fe3af8b76c3120c7e8b27beac0b2927abf2"] = "0x22222244"
 	mortgageTable["0x92fb6a50a6817d19b1cb47bdc55a687add4ea21a"] = "0x777777"
 	FireSyncTransaction(true, "0xaf7a12de8dc1de25c0541966695498074f52a1cc", "c2bb8976c35037f73b594425b5ee77f6931bae7e3c6fd91cec52a570a804e6f8", &mortgageTable)
@@ -37,8 +37,8 @@ func TestFireSyncTransaction(t *testing.T) {
     "id": 1
 }`*/
 func TestGetLogSwitchByAddressAndFileID(t *testing.T) {
-	addressAndFileID := make(map[string]FileID)
-	var fileIDArr FileID
+	addressAndFileID := make(map[string]FileIDT)
+	var fileIDArr FileIDT
 	fileIDArr = append(fileIDArr, "cb88764da463d1c4497e159fd6668852d451864e677d4fa1c1a6fdd958f2aed0")
 	fileIDArr = append(fileIDArr, "cb88764da463d1c4497e159fd6668852d451864e677d4fa1c1a6fdd958f2aed0")
 	addressAndFileID["0xaf7a12de8dc1de25c0541966695498074f52a1cc"] = fileIDArr

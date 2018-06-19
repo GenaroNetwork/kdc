@@ -244,3 +244,28 @@ func appendNewOperation(fileId string, userId string, operation string, value st
 	}
 	return nil
 }
+
+func listAllUsersForFile(fileId string) (*[]string, error) {
+	var userIds []string
+	tableName := getModificationTableName(fileId)
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
+	stmt, err := dbConn.Prepare(fmt.Sprintf("select distinct userId from %s ", tableName))
+	if err != nil {
+		dbLog.Error("select distinct userId from %s", err)
+		return nil, err
+	}
+	defer stmt.Close()
+	rows, err := stmt.Query()
+	for rows.Next() {
+		var userId string
+		err = rows.Scan(&userId)
+		if err != nil {
+			dbLog.Error("select userId, value err: %s", err)
+			return nil, err
+		}
+		fmt.Println(userId)
+		userIds = append(userIds, userId)
+	}
+	return &userIds, nil
+}

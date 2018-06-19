@@ -10,10 +10,10 @@ import (
 )
 
 type MortgageTab struct {
-	FromAccount string         `json:"fromAccount"`
-	Terminate   bool           `json:"terminate"`
-	Sidechain   *core.Mortgage `json:"sidechain"`
-	FileID      string         `json:"fileID"`
+	FromAccount string          `json:"fromAccount"`
+	Terminate   bool            `json:"terminate"`
+	Sidechain   *core.MortgageT `json:"sidechain"`
+	FileID      string          `json:"fileID"`
 }
 
 type SpecialTxInput struct {
@@ -38,7 +38,50 @@ type FireSyncTransactionParameter struct {
 	Id      int          `json:"id"`
 }
 
-func FireSyncTransaction(isTerminate bool, fromAccount, fileId string, mortgage *core.Mortgage) bool {
+type UnlockAccountParameter struct {
+	Jsonrpc string   `json:"jsonrpc"`
+	Method  string   `json:"method"`
+	Params  []string `json:"params"`
+	Id      int      `json:"id"`
+}
+type InitFileT struct {
+	MortgageTable  map[string]*hexutil.Big `json:"mortgage"`
+	AuthorityTable map[string]int          `json:"authority"`
+	FileID         string                  `json:"fileID"`
+	CreateTime     int64                   `json:"createTime"`
+	EndTime        int64                   `json:"endTime"`
+	FromAccount    string                  `json:"fromAccount"`
+}
+type MortgageInitResult struct {
+	Id      int         `json:"id"`
+	Jsonrpc string      `json:"jsonrpc"`
+	Result  []InitFileT `json:"result"`
+}
+type MortgageInitParameter struct {
+	Jsonrpc string   `json:"jsonrpc"`
+	Method  string   `json:"method"`
+	Params  []string `json:"params"`
+	Id      int      `json:"id"`
+}
+type BlockNumberResult struct {
+	Id      int    `json:"id"`
+	Jsonrpc string `json:"jsonrpc"`
+	Result  string `json:"result"`
+}
+type GetLogSwitchParameter struct {
+	Jsonrpc string   `json:"jsonrpc"`
+	Method  string   `json:"method"`
+	Params  []string `json:"params"`
+	Id      int      `json:"id"`
+}
+type FileIDT []string
+type GetLogSwitchByAddressAndFileIDResult struct {
+	Id      int                        `json:"id"`
+	Jsonrpc string                     `json:"jsonrpc"`
+	Result  map[string]map[string]bool `json:"result"`
+}
+
+func FireSyncTransaction(isTerminate bool, fromAccount, fileId string, mortgage *core.MortgageT) bool {
 	if "" == fileId || nil == mortgage || "" == fromAccount {
 		return false
 	}
@@ -78,13 +121,6 @@ func FireSyncTransaction(isTerminate bool, fromAccount, fileId string, mortgage 
 	return true
 }
 
-type UnlockAccountParameter struct {
-	Jsonrpc string   `json:"jsonrpc"`
-	Method  string   `json:"method"`
-	Params  []string `json:"params"`
-	Id      int      `json:"id"`
-}
-
 func UnlockAccount(account, password string) bool {
 	if "" == account || "" == password {
 		return false
@@ -120,29 +156,7 @@ func GetInitFile(startNum string) {
 	}
 }
 
-type InitFile struct {
-	MortgageTable  map[string]*hexutil.Big `json:"mortgage"`
-	AuthorityTable map[string]int          `json:"authority"`
-	FileID         string                  `json:"fileID"`
-	CreateTime     int64                   `json:"createTime"`
-	EndTime        int64                   `json:"endTime"`
-	FromAccount    string                  `json:"fromAccount"`
-}
-
-type MortgageInitResult struct {
-	Id      int        `json:"id"`
-	Jsonrpc string     `json:"jsonrpc"`
-	Result  []InitFile `json:"result"`
-}
-
-type MortgageInitParameter struct {
-	Jsonrpc string   `json:"jsonrpc"`
-	Method  string   `json:"method"`
-	Params  []string `json:"params"`
-	Id      int      `json:"id"`
-}
-
-func GetMortgageInitByBlockNumberRange(startNum string) []InitFile {
+func GetMortgageInitByBlockNumberRange(startNum string) []InitFileT {
 	if "" == startNum {
 		return nil
 	}
@@ -168,12 +182,6 @@ func GetMortgageInitByBlockNumberRange(startNum string) []InitFile {
 		return mortgageInitResultArr.Result
 	}
 	return nil
-}
-
-type BlockNumberResult struct {
-	Id      int    `json:"id"`
-	Jsonrpc string `json:"jsonrpc"`
-	Result  string `json:"result"`
 }
 
 func GetBlockNumber() string {
@@ -202,22 +210,7 @@ func httpPost(parameter []byte) []byte {
 	return nil
 }
 
-type GetLogSwitchParameter struct {
-	Jsonrpc string   `json:"jsonrpc"`
-	Method  string   `json:"method"`
-	Params  []string `json:"params"`
-	Id      int      `json:"id"`
-}
-
-type FileID []string
-
-type GetLogSwitchByAddressAndFileIDResult struct {
-	Id      int                        `json:"id"`
-	Jsonrpc string                     `json:"jsonrpc"`
-	Result  map[string]map[string]bool `json:"result"`
-}
-
-func GetLogSwitchByAddressAndFileID(addressAndFileID map[string]FileID) map[string]map[string]bool {
+func GetLogSwitchByAddressAndFileID(addressAndFileID map[string]FileIDT) map[string]map[string]bool {
 	if nil == addressAndFileID {
 		return nil
 	}
@@ -236,4 +229,8 @@ func GetLogSwitchByAddressAndFileID(addressAndFileID map[string]FileID) map[stri
 	var resultArr GetLogSwitchByAddressAndFileIDResult
 	json.Unmarshal(result, &resultArr)
 	return resultArr.Result
+}
+
+func init() {
+	core.SetSyncFunc(FireSyncTransaction)
 }

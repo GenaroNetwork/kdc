@@ -20,14 +20,21 @@ type ModificationT struct {
 	value     CoinUnitT
 }
 
-type Mortgage = map[string]string
+type MortgageT = map[string]string
 
-var UnImplementedErr = errors.New("unimplemented") // error usage https://medium.com/@sebdah/go-best-practices-error-handling-2d15e1f0c5ee
+type fireSyncFuncT func (isTerminate bool, fromAccount, fileId string, mortgage *MortgageT) bool
+
 var InsufficientBalanceErr = errors.New("insufficient balance")
 var NotOwnerErr = errors.New("insufficient privilege: not owner")
 var NoPermissionErr = errors.New("user has no permission")
 var UnSupportedOperationErr = errors.New("UnSupportedOperationErr")
 var NoNegativeValueAllowedErr = errors.New("NoNegativeValueAllowedErr")
+
+var fireSyncFunc fireSyncFuncT
+
+func SetSyncFunc(fun fireSyncFuncT) {
+	fireSyncFunc = fun
+}
 
 func InitFile(userId string, fileId string, allow *AllowTableT, mortgage *MortgageTableT, startTime int64, EndTime int64) error {
 	err := initNewFile(fileId, userId, "", allow, mortgage)
@@ -45,11 +52,16 @@ func Terminate(userId string, fileId string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// 3. send terminate transaction
-	//txHash, err := service.FireSyncTransaction(true, "", nil)
-	//if err != nil {
-	//	return "", err
-	//}
+	// 3. get final state
+	mt, err := getRemainMontage(fileId)
+	if err != nil {
+		return "", err
+	}
+	// 4. send terminate transaction
+	bOK := fireSyncFunc(true, userId, fileId, mt)
+	if !bOK {
+		return "", err
+	}
 	return "", nil
 }
 
@@ -116,6 +128,7 @@ func readValueDirect(fileId string, userId string) (*CoinUnitT, error) {
 }
 
 func ReadValue(readingUser string, fileId string, userId string) (*CoinUnitT, error) {
+	// TODO: consider performance improve
 	// 1. check privilege
 	permi, _ := getPermissionForFile(readingUser, fileId)
 	if permi == Readwrite || permi == Readonly {
@@ -124,4 +137,23 @@ func ReadValue(readingUser string, fileId string, userId string) (*CoinUnitT, er
 	} else {
 		return nil, NoPermissionErr
 	}
+}
+
+func getRemainMontage(fileId string) (*MortgageT, error){
+	// TODO: consider performance improve
+	mt := make(MortgageT)
+	// 1. get all users
+	userIds, err := listAllUsersForFile(fileId)
+	if err != nil {
+		return nil, err
+	}
+	// 2. read each value
+	for _, userId := range *userIds {
+		balance, err := readValueDirect(fileId, userId)
+		if err != nil {
+			return nil, err
+		}
+		mt[userId] = hexutil.EncodeBig(balance)
+	}
+	return &mt, nil
 }
